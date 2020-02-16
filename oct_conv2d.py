@@ -14,7 +14,6 @@ https://arxiv.org/abs/1904.05049
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
 import tensorflow.keras.backend as K
-from keras.utils import conv_utils
 
 class OctConv2D(layers.Layer):
     def __init__(self, filters, alpha, kernel_size=(3,3), strides=(1,1), 
@@ -188,16 +187,16 @@ class OctConv2DTranspose(layers.Layer):
         high_input, low_input = inputs
         assert len(inputs) == 2
         # High -> High conv
-        high_to_high = layers.Conv2DTranspose(self.high_channels, self.kernel_size, strides=self.strides, padding=self.padding, data_format="channels_last")(high_input)
+        high_to_high = layers.Conv2DTranspose(self.high_channels, self.kernel_size, strides=self.strides, padding=self.padding, data_format="channels_last", kernel_regularizer=self.kernel_regularizer)(high_input)
         # High -> Low conv
         high_to_low  = layers.AvgPool2D((2,2), strides=(2,2))(high_input)
-        high_to_low  = layers.Conv2DTranspose(self.low_channels, self.kernel_size, strides=self.strides, padding=self.padding, data_format="channels_last")(high_to_low)
+        high_to_low  = layers.Conv2DTranspose(self.low_channels, self.kernel_size, strides=self.strides, padding=self.padding, data_format="channels_last", kernel_regularizer=self.kernel_regularizer)(high_to_low)
         # Low -> High conv
-        low_to_high  = layers.Conv2DTranspose(self.high_channels, self.kernel_size, strides=self.strides, padding=self.padding, data_format="channels_last")(low_input)
+        low_to_high  = layers.Conv2DTranspose(self.high_channels, self.kernel_size, strides=self.strides, padding=self.padding, data_format="channels_last", kernel_regularizer=self.kernel_regularizer)(low_input)
         low_to_high = layers.UpSampling2D((2,2), data_format='channels_last', interpolation='nearest')(low_to_high) # Nearest Neighbor Upsampling
         # low_to_high = K.repeat_elements(low_to_high, 2, axis=2)
         # Low -> Low conv
-        low_to_low   = layers.Conv2DTranspose(self.low_channels, self.kernel_size, strides=self.strides, padding=self.padding, data_format="channels_last")(low_input)
+        low_to_low   = layers.Conv2DTranspose(self.low_channels, self.kernel_size, strides=self.strides, padding=self.padding, data_format="channels_last", kernel_regularizer=self.kernel_regularizer)(low_input)
         # Cross Add
         high_add = high_to_high + low_to_high
         low_add = high_to_low + low_to_low
